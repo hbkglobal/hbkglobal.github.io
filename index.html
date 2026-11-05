@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HBK CTV</title>
+<meta name="theme-color" content="#0f4c81">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="HBK CTV">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+html,body{margin:0;height:100%;background:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#17202b}
+#app{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;padding-top:env(safe-area-inset-top);box-sizing:border-box;background:#f3f5f8}
+#splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#fff;transition:opacity .3s;z-index:2}
+#splash img{width:62%;max-width:280px}
+#splash .dot{width:28px;height:28px;border-radius:50%;border:3px solid #e2e6ec;border-top-color:#0f4c81;animation:s 0.9s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+#msg{padding:0 24px;text-align:center;font-size:15px;line-height:1.5;color:#667180;display:none}
+#tip{position:fixed;left:12px;right:12px;bottom:14px;z-index:3;background:#0f4c81;color:#fff;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.45;display:none;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+#tip b{color:#ffc94d}#tip button{float:right;background:none;border:0;color:#fff;font-size:18px;margin:-4px -4px 0 8px}
+#install{display:block;width:100%;margin-top:8px;border:0;border-radius:10px;padding:10px;font-weight:700;font-size:15px;background:#ffc94d;color:#17202b}
+</style>
+</head>
+<body>
+<div id="splash"><img src="icon-512.png" alt="HBK Global"><div class="dot"></div><div id="msg"></div></div>
+<div id="tip"></div>
+<script>
+var APP_URL = 'https://script.google.com/macros/s/AKfycbwpB74z69gn_UowOD46V_sX2y0TNZKdnBwMirVEyGZBPEz6LLwD6Pm-FkJRNVJaG_8VKw/exec';
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+var q = new URLSearchParams(location.search);
+var ctv = (q.get('ctv') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 12).toUpperCase();
+if (ctv) store('hbk_ctv', ctv); else ctv = store('hbk_ctv') || '';
+var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+
+if (!ctv) {
+  document.querySelector('.dot').style.display = 'none';
+  var m = document.getElementById('msg');
+  m.style.display = 'block';
+  m.textContent = 'Anh/chị mở đúng link riêng công ty gửi qua Zalo (có chữ ?ctv=...) một lần để kích hoạt app.';
+} else {
+  var f = document.createElement('iframe');
+  f.id = 'app';
+  f.title = 'HBK CTV';
+  f.allow = 'clipboard-write';
+  f.src = APP_URL + '?ctv=' + encodeURIComponent(ctv);
+  f.onload = function () { var s = document.getElementById('splash'); s.style.opacity = 0; setTimeout(function () { s.remove(); }, 350); };
+  document.body.appendChild(f);
+}
+
+// Hướng dẫn cài app khi chưa cài
+var deferred = null;
+var tip = document.getElementById('tip');
+function showTip(html) { if (standalone || store('hbk_tip_off')) return; tip.innerHTML = '<button onclick="tip.style.display=\'none\';store(\'hbk_tip_off\',\'1\')">×</button>' + html; tip.style.display = 'block'; }
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault(); deferred = e;
+  showTip('Cài <b>HBK CTV</b> ra màn hình điện thoại để mở nhanh như app.<button id="install">Cài app</button>');
+  document.getElementById('install').onclick = function () { deferred.prompt(); deferred.userChoice.then(function () { tip.style.display = 'none'; }); };
+});
+var ua = navigator.userAgent;
+var ios = /iPhone|iPad|iPod/.test(ua);
+var inApp = /Zalo|FBAN|FBAV|Instagram/i.test(ua);
+setTimeout(function () {
+  if (standalone || tip.style.display === 'block') return;
+  if (inApp) showTip('Để cài app: bấm <b>⋯</b> ở góc trên, chọn <b>Mở bằng trình duyệt</b> (Chrome hoặc Safari).');
+  else if (ios) showTip('Để cài app: bấm nút <b>Chia sẻ</b> (ô vuông có mũi tên) ở dưới, chọn <b>Thêm vào MH chính</b>.');
+  else showTip('Để cài app: bấm <b>⋮</b> góc trên bên phải, chọn <b>Thêm vào màn hình chính</b> hoặc <b>Cài đặt ứng dụng</b>.');
+}, 4000);
+</script>
+</body>
+</html>

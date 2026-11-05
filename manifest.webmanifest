@@ -1,0 +1,26 @@
+{
+ "name": "HBK Global - App CTV",
+ "short_name": "HBK CTV",
+ "description": "App quản lý khách báo giá và kết quả kinh doanh cho CTV HBK Global",
+ "start_url": "./?src=app",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#ffffff",
+ "theme_color": "#0f4c81",
+ "lang": "vi",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any maskable"
+  }
+ ]
+}
