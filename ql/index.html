@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>HBK Quản lý</title>
+<meta name="theme-color" content="#0b3d91">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="icon" href="../icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="HBK Quản lý">
+<style>
+:root{--b:#0b3d91;--b2:#1565c0;--y:#ffb300;--bg:#eef2f7;--t:#1b2430;--m:#6b7a8c;--r:#c62828;--g:#2e7d32;--card:#fff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--t);font-size:15px}
+header{background:linear-gradient(120deg,var(--b),var(--b2));color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+header img{width:34px;height:34px;border-radius:8px;background:#fff}
+header .ti{font-weight:700;font-size:16px;flex:1}header .ti small{display:block;font-weight:400;opacity:.85;font-size:12px}
+header button{background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
+nav{display:flex;overflow-x:auto;background:#fff;border-bottom:1px solid #dde4ee;position:sticky;top:58px;z-index:4}
+nav button{flex:1;min-width:84px;border:0;background:none;padding:11px 6px;font-size:13px;color:var(--m);border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--b);border-color:var(--y);font-weight:700}
+main{padding:12px;max-width:760px;margin:0 auto 80px}
+.card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+label{display:block;font-size:12px;color:var(--m);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:10px;border:1px solid #cfd8e3;border-radius:8px;font-size:15px;background:#fff;font-family:inherit}
+textarea{min-height:60px}
+.btn{display:block;width:100%;border:0;border-radius:10px;padding:13px;font-size:16px;font-weight:700;background:var(--b);color:#fff;margin-top:12px}
+.btn.g{background:var(--g)}.btn.o{background:#fff;color:var(--b);border:1.5px solid var(--b)}.btn.sm{display:inline-block;width:auto;padding:8px 12px;font-size:13px;margin:0}
+h3{margin:4px 0 8px;font-size:15px;color:var(--b)}
+.it{padding:10px 2px;border-bottom:1px solid #eef1f5}.it:last-child{border:0}
+.it b{display:block}.mu{color:var(--m);font-size:13px}.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#e3ecf9;color:var(--b);margin-right:4px}
+.tag.r{background:#fde2e2;color:var(--r)}.tag.g{background:#e3f2e5;color:var(--g)}.tag.o{background:#fff1e0;color:#e65100}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kpi div{background:#f4f7fb;border-radius:10px;padding:10px}.kpi span{font-size:12px;color:var(--m)}.kpi b{display:block;font-size:18px;margin-top:2px}
+.money{text-align:right;font-weight:700}.red{color:var(--r)}.grn{color:var(--g)}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:10px 2px;border-bottom:1px solid #eef1f5}
+.chk .bx{display:flex;flex-direction:column;gap:6px;min-width:84px}
+.chk label{margin:0;font-size:13px;color:var(--t);display:flex;gap:6px;align-items:center}.chk input{width:20px;height:20px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#263238;color:#fff;padding:12px 16px;border-radius:10px;max-width:92%;font-size:14px;display:none;z-index:9}
+#load{position:fixed;inset:0;background:rgba(255,255,255,.6);display:none;align-items:center;justify-content:center;z-index:8;font-weight:700;color:var(--b)}
+.line{background:#f7f9fc;border-radius:10px;padding:8px;margin-top:8px}
+.pre{white-space:pre-wrap;font-size:13px;background:#f7f9fc;border-radius:8px;padding:10px}
+.login{max-width:380px;margin:40px auto}.login img{width:80px;display:block;margin:0 auto 10px;border-radius:16px}
+.seg{display:flex;gap:6px;margin-bottom:8px}.seg button{flex:1;padding:8px;border:1px solid #cfd8e3;background:#fff;border-radius:8px;font-size:13px}.seg button.on{background:var(--b);color:#fff;border-color:var(--b)}
+</style></head><body>
+<div id="app"></div><div id="toast"></div><div id="load">Đang xử lý...</div>
+<script>
+const API='https://script.google.com/macros/s/AKfycbwpB74z69gn_UowOD46V_sX2y0TNZKdnBwMirVEyGZBPEz6LLwD6Pm-FkJRNVJaG_8VKw/exec';
+let S={tok:null,meta:null,tab:null};
+try{S.tok=localStorage.getItem('qlTok')}catch(e){}
+const $=s=>document.querySelector(s), app=$('#app');
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vnd=n=>(Math.round(Number(n)||0)).toLocaleString('vi-VN');
+const dd=s=>s?s.split('-').reverse().join('/'):'';
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._x);t._x=setTimeout(()=>t.style.display='none',3500)}
+async function call(fn,args={},quiet){
+  if(!quiet)$('#load').style.display='flex';
+  try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({fn,token:S.tok},args))});
+    const j=await r.json(); if(!j.ok){if(j.error==='PHIEN_HET_HAN'){logout();throw new Error('Phiên đăng nhập hết hạn, đăng nhập lại.')}throw new Error(j.error)} return j.data;}
+  finally{$('#load').style.display='none'}
+}
+function logout(){S.tok=null;try{localStorage.removeItem('qlTok')}catch(e){}loginView()}
+async function loginView(){
+  app.innerHTML=`<div class="login card"><img src="../icon-192.png"><h3 style="text-align:center">HBK GLOBAL - APP QUẢN LÝ</h3>
+  <label>Họ tên</label><select id="ten"><option>Đang tải...</option></select><label>Mã PIN</label><input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="4 số">
+  <button class="btn" id="go">Đăng nhập</button></div>`;
+  try{const ds=await call('nhanvien',{},true);$('#ten').innerHTML=ds.map(n=>`<option>${esc(n)}</option>`).join('');
+    try{const l=localStorage.getItem('qlTen');if(l)$('#ten').value=l}catch(e){}}catch(e){toast(e.message)}
+  $('#go').onclick=async()=>{try{const r=await call('login',{ten:$('#ten').value,pin:$('#pin').value});S.tok=r.token;try{localStorage.setItem('qlTok',r.token);localStorage.setItem('qlTen',r.ten)}catch(e){}start()}catch(e){toast(e.message)}};
+}
+const TABS=[['don','Đơn hàng'],['chuyen','Xếp chuyến'],['hoadon','Hóa đơn'],['quy','Quỹ & thu chi'],['hopdong','Hợp đồng']];
+async function start(){
+  try{S.meta=await call('meta')}catch(e){toast(e.message);return}
+  const q=S.meta.quyen, tabs=TABS.filter(t=>q.includes(t[0])||(t[0]==='don'&&q.includes('don_xem')));
+  app.innerHTML=`<header><img src="../icon-192.png"><div class="ti">HBK Quản lý<small>${esc(S.meta.user.ten)} · ${esc(S.meta.user.role)}</small></div><button id="out">Thoát</button></header>
+  <nav>${tabs.map(t=>`<button data-t="${t[0]}">${t[1]}</button>`).join('')}</nav><main id="m"></main>`;
+  $('#out').onclick=logout;
+  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.t));
+  go(q.includes('quy')?'quy':tabs[0][0]);
+}
+function go(t){S.tab=t;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));({don:vDon,chuyen:vChuyen,hoadon:vHoaDon,quy:vQuy,hopdong:vHopDong})[t]()}
+const M=()=>$('#m');
+const opts=(a,v,blank)=>(blank?'<option value=""></option>':'')+a.map(x=>`<option${String(x).trim()===String(v||'').trim()?' selected':''}>${esc(x)}</option>`).join('');
+/* ---------- ĐƠN HÀNG ---------- */
+async function vDon(all){
+  M().innerHTML=`<div class="row">${S.meta.quyen.includes('don')?'<button class="btn g sm" id="new">+ Đơn mới</button>':''}<input id="q" placeholder="Tìm khách, mã đơn, CTV..."></div>
+  <div class="seg" style="margin-top:8px"><button id="f1" class="${all?'':'on'}">Đang xử lý</button><button id="f2" class="${all?'on':''}">Tất cả</button></div><div id="ls" class="card">Đang tải...</div>`;
+  if($('#new'))$('#new').onclick=()=>donForm(null);
+  $('#f1').onclick=()=>vDon(false);$('#f2').onclick=()=>vDon(true);
+  let ds=[];try{ds=await call('listDon',{all:!!all},true)}catch(e){toast(e.message)}
+  const draw=()=>{const k=$('#q').value.toLowerCase();const f=ds.filter(o=>!k||(o.ma+o.khach+o.ctv+o.chuyen).toLowerCase().includes(k));
+    $('#ls').innerHTML=f.length?f.map(o=>`<div class="it" data-m="${esc(o.ma)}"><b>${esc(o.ma||'(chưa mã)')} · ${esc(o.khach)}</b>
+    <span class="tag">${esc(o.tt)}</span>${o.chuyen?`<span class="tag g">${esc(o.chuyen)}</span>`:''}${o.check?'<span class="tag r">Thiếu dữ liệu</span>':''}
+    <div class="mu">${esc(o.may.join('; '))} · CTV ${esc(o.ctv||'-')}</div><div class="mu">Tổng ${vnd(o.tien)} đ · Còn thu <b style="display:inline" class="${o.con>0?'red':''}">${vnd(o.con)} đ</b></div></div>`).join(''):'Không có đơn.';
+    document.querySelectorAll('#ls .it').forEach(x=>x.onclick=async()=>{if(!x.dataset.m)return toast('Đơn này chưa có mã, sửa trên file.');try{donForm(await call('getDon',{ma:x.dataset.m}))}catch(e){toast(e.message)}})};
+  $('#q').oninput=draw;draw();
+}
+function donForm(d){
+  const edit=!!d, ro=!S.meta.quyen.includes('don');
+  d=d||{ma:S.meta.maDonMoi,ngay:S.meta.homnay,tt:'Đã chốt',ht:'Xe công ty lắp đặt',lines:[{}],ngCoc:S.meta.homnay};
+  const spOpt=v=>'<option value=""></option>'+S.meta.sp.map(s=>`<option value="${esc(s.ma)}"${s.ma===v?' selected':''}>${esc(s.ma)} · ${esc(s.ten)}</option>`).join('');
+  const lineH=(l,i)=>`<div class="line" data-i="${i}" data-row="${l.row||''}"><div class="row"><select class="sp">${spOpt(l.sp)}</select><input class="sl" type="number" min="1" value="${l.sl||1}" style="max-width:70px"></div>
+    <label>Giá bán thực tế / bộ (để trống = giá niêm yết)</label><input class="gia" inputmode="numeric" value="${l.gia?vnd(l.gia):''}">
+    <div class="hc" style="display:${l.sp==='HANGCHE'?'block':'none'}"><label>Quy cách hàng chế</label><input class="qc" value="${esc(l.qc)}"><div class="row"><div><label>Giá vốn/bộ</label><input class="gv" inputmode="numeric" value="${l.gv?vnd(l.gv):''}"></div><div><label>Khoán lắp/bộ</label><input class="kl" inputmode="numeric" value="${l.kl!==''&&l.kl!=null?vnd(l.kl):''}"></div></div></div></div>`;
+  M().innerHTML=`<button class="btn o sm" id="bk">← Danh sách</button>
+  <div class="card"><h3>${edit?'Sửa đơn '+esc(d.ma):'Đơn mới'}</h3>
+  <div class="row"><div><label>Mã đơn</label><input id="ma" value="${esc(d.ma)}" ${edit?'readonly':''}></div><div><label>Ngày chốt</label><input id="ngay" type="date" value="${d.ngay||''}"></div></div>
+  <label>Khách hàng</label><input id="khach" value="${esc(d.khach)}"><div class="row"><div><label>SĐT</label><input id="sdt" inputmode="tel" value="${esc(d.sdt)}"></div><div><label>CTV bán</label><select id="ctv">${opts(S.meta.ctv,d.ctv,1)}</select></div></div>
+  <label>Địa chỉ lắp đặt</label><input id="dc" value="${esc(d.dc)}"><label>Vị trí (link Google Maps)</label><input id="vt" value="${esc(d.vt)}">
+  <div class="row"><div><label>Hình thức giao</label><select id="ht">${opts(['Xe công ty lắp đặt','Ship Viettel Post'],d.ht)}</select></div><div><label>Ngày giao dự kiến</label><input id="ngGiao" type="date" value="${d.ngGiao||''}"></div></div>
+  <div class="row"><div><label>Trạng thái</label><select id="tt">${opts(S.meta.trangthai,d.tt)}</select></div><div><label>Không cọc - người chịu</label><select id="kc">${opts(['CTV bán hàng','Quản lý duyệt'],d.kc,1)}</select></div></div>
+  <label>Ghi chú</label><input id="gc" value="${esc(d.gc)}"></div>
+  <div class="card"><h3>Dòng máy</h3><div id="lines">${(d.lines.length?d.lines:[{}]).map(lineH).join('')}</div><button class="btn o sm" id="addL" style="margin-top:8px">+ Thêm dòng máy</button><div class="money" id="tong" style="margin-top:10px"></div></div>
+  <div class="card"><h3>Tiền cọc</h3><div class="row"><div><label>Tiền cọc (đ)</label><input id="coc" inputmode="numeric" value="${d.coc?vnd(d.coc):''}"></div><div><label>Ngày cọc</label><input id="ngCoc" type="date" value="${d.ngCoc||S.meta.homnay}"></div></div>
+  <label>Quỹ nhận cọc</label><select id="quy">${opts(S.meta.quy,'',1)}</select><div class="mu">${edit&&d.coc?'Cọc đã ghi ở Sổ thu chi, không ghi lại.':'Lưu đơn sẽ tự ghi cọc vào Sổ thu chi.'}</div></div>
+  ${edit?`<div class="card"><h3>Tiến độ sau bán</h3><div class="row"><div><label>Ngày lắp xong</label><input id="ngLap" type="date" value="${d.ngLap||''}"></div><div><label>Ngày giao HĐ</label><input id="ngHD" type="date" value="${d.ngHD||''}"></div></div>
+  <div class="row"><div><label>Hẹn trả nốt</label><input id="hen" type="date" value="${d.hen||''}"></div><div><label>Biên bản nghiệm thu</label><select id="bbnt">${opts(['Đã ký','Chưa ký'],d.bbnt,1)}</select></div></div>
+  <div class="mu" style="margin-top:8px">Chuyến: ${esc(d.chuyen||'-')} · Còn phải thu: <b class="red" style="display:inline">${vnd(d.con)} đ</b></div>
+  ${d.check&&d.check.some(c=>c.indexOf('Cần')===0)?`<div class="pre" style="margin-top:8px;color:#c62828">${esc(d.check.filter(c=>c.indexOf('Cần')===0).join('\n'))}</div>`:'<div class="tag g" style="margin-top:8px">✓ Đủ dữ liệu</div>'}</div>`:''}
+  ${ro?'':'<button class="btn g" id="save">LƯU ĐƠN</button>'}`;
+  $('#bk').onclick=()=>vDon();
+  const bind=()=>{document.querySelectorAll('#lines .line').forEach(L=>{L.querySelector('.sp').onchange=e=>{L.querySelector('.hc').style.display=e.target.value==='HANGCHE'?'block':'none';sum()};L.querySelectorAll('input').forEach(i=>i.oninput=sum)})};
+  const sum=()=>{let t=0;document.querySelectorAll('#lines .line').forEach(L=>{const sp=S.meta.sp.find(s=>s.ma===L.querySelector('.sp').value);const g=Number(L.querySelector('.gia').value.replace(/\D/g,''))||(sp?Number(sp.gia)||0:0);t+=g*(Number(L.querySelector('.sl').value)||0)});$('#tong').textContent='Tổng đơn: '+vnd(t)+' đ'};
+  $('#addL').onclick=()=>{$('#lines').insertAdjacentHTML('beforeend',lineH({},document.querySelectorAll('#lines .line').length));bind()};
+  bind();sum();
+  if($('#save'))$('#save').onclick=async()=>{
+    const v=id=>$('#'+id)?$('#'+id).value:'';
+    const don={ma:v('ma'),ngay:v('ngay'),khach:v('khach'),sdt:v('sdt'),ctv:v('ctv'),dc:v('dc'),vt:v('vt'),ht:v('ht'),ngGiao:v('ngGiao'),tt:v('tt'),kc:v('kc'),gc:v('gc'),coc:v('coc'),ngCoc:v('ngCoc'),quy:v('quy'),ngLap:v('ngLap'),ngHD:v('ngHD'),hen:v('hen'),bbnt:v('bbnt'),
+      lines:[...document.querySelectorAll('#lines .line')].map(L=>({row:L.dataset.row,sp:L.querySelector('.sp').value,sl:L.querySelector('.sl').value,gia:L.querySelector('.gia').value,qc:L.querySelector('.qc').value,gv:L.querySelector('.gv').value,kl:L.querySelector('.kl').value}))};
+    try{const r=await call('saveDon',{don});toast(r.msg);if(!edit)S.meta.maDonMoi='MD'+('00'+(parseInt(don.ma.replace(/\D/g,''))+1)).slice(-3);donForm(r.don)}catch(e){toast(e.message)}};
+}
+/* ---------- XẾP CHUYẾN ---------- */
+async function vChuyen(ma){
+  M().innerHTML=`<div class="card"><label>Chọn chuyến có sẵn hoặc tạo mới</label><div class="row"><select id="sel"><option value="">-- Chuyến mới: ${S.meta.maChuyenMoi} --</option>${S.meta.chuyen.map(c=>`<option${c===ma?' selected':''}>${esc(c)}</option>`).join('')}</select></div></div><div id="cf">Đang tải...</div>`;
+  $('#sel').onchange=()=>vChuyen($('#sel').value);
+  let c;try{c=await call('getChuyen',{ma:ma||''},true)}catch(e){return toast(e.message)}
+  if(!ma){c.ma=S.meta.maChuyenMoi}
+  const nv=S.meta.nvkt;
+  $('#cf').innerHTML=`<div class="card"><h3>${c.co?'Sửa chuyến '+esc(c.ma):'Chuyến mới '+esc(c.ma)}</h3>
+  <div class="row"><div><label>Mã chuyến</label><input id="cma" value="${esc(c.ma)}" ${c.co?'readonly':''}></div><div><label>Ngày đi</label><input id="cng" type="date" value="${c.ngay||S.meta.homnay}"></div></div>
+  <div class="row"><div><label>Xe</label><select id="cxe">${opts(S.meta.xe,c.xe,1)}</select></div><div><label>Lái xe</label><select id="clai">${opts(nv,c.lai,1)}</select></div></div>
+  <div class="row"><div><label>Đi cùng 1</label><select id="cd1">${opts(nv,c.dc1,1)}</select></div><div><label>Đi cùng 2</label><select id="cd2">${opts(nv,c.dc2,1)}</select></div></div>
+  <div class="row"><div><label>Chở hộ giao cho chuyến</label><select id="cgiao">${opts(S.meta.chuyen,c.giao,1)}</select></div><div><label>Khoán chở hộ (đ)</label><input id="ckh" inputmode="numeric" value="${c.khoan?vnd(c.khoan):''}"></div></div>
+  ${c.loai?`<div class="mu" style="margin-top:6px">Loại chuyến: <b style="display:inline">${esc(c.loai)}</b></div>`:''}</div>
+  <div class="card"><h3>Chọn đơn (${c.list.length} đơn chờ / đã gắn)</h3>${c.list.map((o,i)=>`<div class="chk"><div class="bx"><label><input type="checkbox" class="lp" data-i="${i}" ${o.lap?'checked':''}>Đi lắp</label><label><input type="checkbox" class="ch" data-i="${i}" ${o.ct?'checked':''}>Chở hộ</label></div>
+    <div><b>${esc(o.ma)} · ${esc(o.khach)}</b><div class="mu">${esc(o.dc)}</div><div class="mu">${esc(o.may)} · CTV ${esc(o.ctv)}</div>${o.dang?`<span class="tag">${esc(o.dang)}</span>`:''}${o.vt?'':'<span class="tag o">Chưa có định vị</span>'}</div></div>`).join('')||'Không có đơn chờ giao.'}
+  <button class="btn g" id="csave">LƯU CHUYẾN</button></div>${c.phieu?`<div class="card"><h3>Phiếu chuyến</h3><div class="pre">${esc(c.phieu)}</div>${c.check&&c.check.indexOf('Cần')===0?`<div class="pre" style="color:#c62828;margin-top:6px">${esc(c.check)}</div>`:''}</div>`:''}`;
+  document.querySelectorAll('.lp').forEach(b=>b.onchange=()=>{if(b.checked)document.querySelector('.ch[data-i="'+b.dataset.i+'"]').checked=false});
+  document.querySelectorAll('.ch').forEach(b=>b.onchange=()=>{if(b.checked)document.querySelector('.lp[data-i="'+b.dataset.i+'"]').checked=false});
+  $('#csave').onclick=async()=>{
+    const ch={ma:$('#cma').value,ngay:$('#cng').value,xe:$('#cxe').value,lai:$('#clai').value,dc1:$('#cd1').value,dc2:$('#cd2').value,giao:$('#cgiao').value,khoan:$('#ckh').value,
+      list:c.list.map((o,i)=>({row:o.row,lap:document.querySelector('.lp[data-i="'+i+'"]').checked,ct:document.querySelector('.ch[data-i="'+i+'"]').checked}))};
+    try{const r=await call('saveChuyen',{chuyen:ch});toast(r.msg);S.meta=await call('meta',{},true);vChuyen(r.chuyen.ma)}catch(e){toast(e.message)}};
+}
+/* ---------- HÓA ĐƠN ---------- */
+async function vHoaDon(mode){
+  mode=mode||'chua';
+  M().innerHTML=`<div class="seg"><button id="h1" class="${mode==='chua'?'on':''}">Chưa xuất HĐ</button><button id="h2" class="${mode==='roi'?'on':''}">Đã xuất HĐ</button></div><input id="hq" placeholder="Tìm khách, mã đơn..."><div id="hl" class="card" style="margin-top:8px">Đang tải...</div>`;
+  $('#h1').onclick=()=>vHoaDon('chua');$('#h2').onclick=()=>vHoaDon('roi');
+  let ds=[];try{ds=await call('listHoaDon',{},true)}catch(e){return toast(e.message)}
+  const draw=()=>{const k=$('#hq').value.toLowerCase();const f=ds.filter(o=>(mode==='chua'?!o.so:!!o.so)&&(!k||(o.ma+o.khach).toLowerCase().includes(k)));
+    $('#hl').innerHTML=f.length?f.map((o,i)=>`<div class="it" data-i="${ds.indexOf(o)}"><b>${esc(o.ma)} · ${esc(o.ten||o.khach)}</b><span class="tag">${esc(o.tt)}</span>${o.mst?'':'<span class="tag o">Chưa có MST</span>'}${o.so?`<span class="tag g">HĐ ${esc(o.so)}</span>`:''}<div class="mu">Ngày chốt ${dd(o.ngay)} · Tổng ${vnd(o.tien)} đ</div></div>`).join(''):'Không có đơn.';
+    document.querySelectorAll('#hl .it').forEach(x=>x.onclick=()=>hdForm(ds[x.dataset.i],mode))};
+  $('#hq').oninput=draw;draw();
+}
+function hdForm(o,mode){
+  const txt=`Tên: ${o.ten||o.khach}\nMST/CCCD: ${o.mst}\nĐịa chỉ: ${o.dchd||o.dc}\nEmail: ${o.email}\n`+o.may.map(m=>`- ${m.ten} x${m.sl}: ${vnd(m.gia)} đ/bộ = ${vnd(m.tien)} đ`).join('\n')+`\nTổng cộng (đã gồm VAT): ${vnd(o.tien)} đ`;
+  M().innerHTML=`<button class="btn o sm" id="hb">← Danh sách</button><div class="card"><h3>Hóa đơn đơn ${esc(o.ma)}</h3><div class="mu">${esc(o.khach)} · ${esc(o.sdt)} · ${esc(o.tt)}</div>
+  <label>Tên xuất hóa đơn (công ty / cá nhân)</label><input id="ht1" value="${esc(o.ten||o.khach)}"><label>Mã số thuế / CCCD</label><input id="ht2" inputmode="numeric" value="${esc(o.mst)}">
+  <label>Địa chỉ xuất hóa đơn</label><input id="ht3" value="${esc(o.dchd||o.dc)}"><label>Email nhận hóa đơn</label><input id="ht4" type="email" value="${esc(o.email)}">
+  <label>Số hóa đơn VAT đã xuất (MISA)</label><input id="ht5" value="${esc(o.so)}" placeholder="Để trống nếu chưa xuất">
+  <button class="btn g" id="hs">LƯU</button></div><div class="card"><h3>Nội dung để nhập MISA</h3><div class="pre" id="hp">${esc(txt)}</div><button class="btn o" id="hc">Sao chép</button></div>`;
+  $('#hb').onclick=()=>vHoaDon(mode);
+  $('#hc').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText($('#hp').textContent).then(()=>toast('Đã sao chép'),()=>toast('Không sao chép được, giữ lâu để chọn'))};
+  $('#hs').onclick=async()=>{try{const r=await call('saveHoaDon',{hd:{ma:o.ma,ten:$('#ht1').value,mst:$('#ht2').value,dchd:$('#ht3').value,email:$('#ht4').value,so:$('#ht5').value}});toast(r.msg);vHoaDon(mode)}catch(e){toast(e.message)}};
+}
+/* ---------- QUỸ ---------- */
+async function vQuy(){
+  M().innerHTML='<div class="card">Đang tải...</div>';
+  let t;try{t=await call('tongQuan',{},true)}catch(e){return M().innerHTML=`<div class="card">${esc(e.message)}</div>`}
+  drawQuy(t);
+}
+function drawQuy(t,f){
+  f=f||'';
+  const gd=t.gd.filter(g=>!f||g.quy===f||g.quyNhan===f);
+  M().innerHTML=`<div class="card"><h3>Số dư quỹ hôm nay</h3><div class="kpi"><div><span>Tiền mặt</span><b>${vnd(t.tm)}</b></div><div><span>Vietcombank</span><b>${vnd(t.vcb)}</b></div><div><span>MBBank</span><b>${vnd(t.mb)}</b></div><div><span>Tổng tiền</span><b class="grn">${vnd(t.tong)}</b></div></div>
+  <div class="kpi" style="margin-top:8px"><div><span>Thu hôm nay</span><b class="grn">${vnd(t.thu)}</b></div><div><span>Chi hôm nay</span><b class="red">${vnd(t.chi)}</b></div></div></div>
+  <div class="card"><h3>Kinh doanh & công nợ</h3><div class="kpi"><div><span>Doanh số tháng (${t.donThang} đơn)</span><b>${vnd(t.dsThang)}</b></div><div><span>Hôm nay (${t.donNgay} đơn)</span><b>${vnd(t.dsNgay)}</b></div><div><span>Khách còn nợ</span><b class="red">${vnd(t.khachNo)}</b></div><div><span>Nợ nhà cung cấp</span><b>${vnd(t.nccNo)}</b></div><div><span>HH CTV đến hạn trả</span><b>${vnd(t.hhPhaiTra)}</b></div><div><span>Đơn nợ quá hạn</span><b>${t.quaHan}</b></div></div></div>
+  <button class="btn g" id="addtc">+ Ghi thu / chi</button>
+  <div class="card" style="margin-top:10px"><h3>Biến động số dư gần đây</h3><div class="seg">${['','Tiền mặt','NH Vietcombank','NH MBBank'].map(q=>`<button data-q="${q}" class="${q===f?'on':''}">${q?q.replace('NH ',''):'Tất cả'}</button>`).join('')}</div>
+  ${gd.map(g=>`<div class="it"><div class="row"><div><b>${esc(g.khoan)}</b><div class="mu">${dd(g.ngay)} · ${esc(g.quy)}${g.quyNhan?' → '+esc(g.quyNhan):''}${g.ma?' · '+esc(g.ma):''}${g.ncc?' · '+esc(g.ncc):''}</div><div class="mu">${esc(g.dg||'')} ${g.nguoi?'· '+esc(g.nguoi):''}</div></div><div class="money ${g.loai==='Thu'?'grn':g.loai==='Chi'?'red':''}" style="flex:0 0 auto">${g.loai==='Thu'?'+':g.loai==='Chi'?'-':''}${vnd(g.tien)}</div></div></div>`).join('')||'Chưa có giao dịch.'}</div>`;
+  $('#addtc').onclick=()=>tcForm(t);
+  document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>drawQuy(t,b.dataset.q));
+}
+function tcForm(t){
+  M().innerHTML=`<button class="btn o sm" id="tb">← Quỹ</button><div class="card"><h3>Ghi thu / chi</h3>
+  <div class="row"><div><label>Ngày</label><input id="t1" type="date" value="${S.meta.homnay}"></div><div><label>Quỹ</label><select id="t3">${opts(S.meta.quy,'',1)}</select></div></div>
+  <label>Khoản mục</label><select id="t2">${opts(S.meta.khoan,'',1)}</select><label>Số tiền (đ)</label><input id="t4" inputmode="numeric">
+  <div id="tx"></div><label>Diễn giải</label><input id="t8"></div><button class="btn g" id="ts">LƯU</button>`;
+  $('#tb').onclick=()=>drawQuy(t);
+  const ex=()=>{const k=$('#t2').value;let h='';
+    if(/khách|bảo hành/i.test(k))h+=`<label>Mã đơn</label><input id="t5" placeholder="VD: MD012">`;
+    if(/nhà cung cấp/i.test(k))h+=`<label>Nhà cung cấp</label><select id="t6">${opts(S.meta.ncc,'',1)}</select>`;
+    if(/chuyến xe|ETC/i.test(k))h+=`<label>Mã chuyến xe</label><select id="t7">${opts(S.meta.chuyen,'',1)}</select>`;
+    if(/nội bộ/i.test(k))h+=`<label>Quỹ nhận</label><select id="t9">${opts(S.meta.quy,'',1)}</select>`;
+    $('#tx').innerHTML=h};
+  $('#t2').onchange=ex;
+  $('#t4').oninput=e=>{const n=e.target.value.replace(/\D/g,'');e.target.value=n?Number(n).toLocaleString('vi-VN'):''};
+  $('#ts').onclick=async()=>{const v=id=>$('#'+id)?$('#'+id).value:'';
+    try{const r=await call('addThuChi',{tc:{ngay:v('t1'),khoan:v('t2'),quy:v('t3'),tien:v('t4'),ma:v('t5'),ncc:v('t6'),mc:v('t7'),dg:v('t8'),quyNhan:v('t9')}});toast(r.msg);drawQuy(r.tq)}catch(e){toast(e.message)}};
+}
+/* ---------- HỢP ĐỒNG ---------- */
+function vHopDong(){M().innerHTML=`<div class="card"><h3>Tạo hợp đồng</h3><div class="mu">Mục này đang hoàn thiện: chọn đơn → app tự tạo Hợp đồng + Phụ biểu linh kiện + Biên bản nghiệm thu theo mẫu của công ty.</div></div>`}
+document.addEventListener('input',e=>{if(e.target.matches('.gia,.gv,.kl,#coc,#ckh')){const n=e.target.value.replace(/\D/g,'');e.target.value=n?Number(n).toLocaleString('vi-VN'):''}},true);
+if(S.tok)start();else loginView();
+</script></body></html>
