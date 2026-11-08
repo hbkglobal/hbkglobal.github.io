@@ -41,7 +41,19 @@ if (!ctv) {
   document.querySelector('.dot').style.display = 'none';
   var m = document.getElementById('msg');
   m.style.display = 'block';
-  m.textContent = 'Anh/chị mở đúng link riêng công ty gửi qua Zalo (có chữ ?ctv=...) một lần để kích hoạt app.';
+  m.innerHTML = 'Nhập <b>mã CTV</b> của anh/chị (ví dụ <b>CTV01</b>) để vào app.<br>Mã CTV có trong link riêng công ty gửi qua Zalo (phần sau chữ ctv=).'
+    + '<div style="margin-top:14px;display:flex;gap:8px;justify-content:center">'
+    + '<input id="ma" placeholder="CTV01" autocapitalize="characters" autocomplete="off" style="width:130px;font-size:18px;padding:10px 12px;border:1.5px solid #c9d1dc;border-radius:10px;text-align:center;text-transform:uppercase">'
+    + '<button id="vao" style="font-size:16px;font-weight:700;padding:10px 16px;border:0;border-radius:10px;background:#0f4c81;color:#fff">Vào app</button></div>'
+    + '<div id="loi" style="color:#c62828;margin-top:8px"></div>';
+  var go = function () {
+    var v = document.getElementById('ma').value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (/^\d+$/.test(v)) v = 'CTV' + (v.length < 2 ? '0' + v : v);
+    if (!/^CTV\d{1,4}$/.test(v)) { document.getElementById('loi').textContent = 'Mã CTV chưa đúng. Ví dụ: CTV01'; return; }
+    store('hbk_ctv', v); location.replace(location.pathname + '?ctv=' + v);
+  };
+  document.getElementById('vao').onclick = go;
+  document.getElementById('ma').addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
 } else {
   var f = document.createElement('iframe');
   f.id = 'app';
